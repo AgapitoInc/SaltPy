@@ -1,6 +1,7 @@
 # Standard Library
 import os
 import glob
+import sys
 import time
 import re
 import warnings
@@ -31,12 +32,9 @@ import pymeshfix as mf
 import wellpathpy as wp
 import requests
 
-# Windows-Specific Tools (optional, handled gracefully)
-try:
-    import pyautogui
-    import win32gui
-except ImportError:
-    print('Ubuntu import error, use pyautogui through Windows')
+# Dependency Setup
+import zipfile
+import requests
 
 
 class SonarPy:
@@ -142,19 +140,11 @@ class SonarPy:
         self.__version__ = '0.0.0d'
         self.crs = crs
         self.metric = metric
-
-        # Determine UTM shapefile path
-        if utm_shp_path:
-            self.utm_shp_path = utm_shp_path
-        elif os.path.exists(r"C:/GIS/World_UTM_Grid.zip"):
-            self.utm_shp_path = r"C:/GIS/World_UTM_Grid.zip"
-        else:
-            self.utm_shp_path = input('Path of World_UTM_Grid.zip?')
+        self.utm_shp_path = "C:\\GIS\\World_UTM_Grid.zip"
 
         # Validate that UTM shapefile exists
         if not os.path.exists(self.utm_shp_path):
-            raise Exception('UTM Zone Shapefile not found in', self.utm_shp_path,
-                            'Place file in C:\GIS\ or define with utm_shp_path parameter')
+            self.set_up_dep()
 
         # Load UTM zones shapefile
         self.utmzones = gpd.read_file(self.utm_shp_path)
@@ -176,6 +166,64 @@ class SonarPy:
         # if self.file:
         #    self.open_lwt()
         #    self.lwt_df_to_delta_points()
+
+    def set_up_dep():
+        '''Sets up dependencies by downloading necessary files and preparing the environment.'''
+        print('Setting up dependencies...')
+        
+        ## IGRF13 Coefficients, Magnetic Declination Data for pyCRGI
+        comp = sys.prefix.split('\\')
+        user = comp[2]
+        # For Windows, the conda environment is typically located at C:/Users/<user>/.conda/envs/<env_name>/
+        geo3dpath = f'C:/Users/{user}/.conda/envs/geo3d/'
+
+        if not os.path.exists(geo3dpath):
+            raise OSError('geo3d conda environment not found at:', geo3dpath)
+
+        pyCGRIdataPath = f'{geo3dpath}lib/site-packages/pyCRGI/data/'
+        dst = pyCGRIdataPath + 'igrf13coeffs.txt'
+        if not os.path.exists(dst):
+            url = "https://www.ngdc.noaa.gov/IAGA/vmod/coeffs/igrf13coeffs.txt"
+            r = requests.get(url)
+            if r.status_code != 200:
+                print(url, 'status code', r.status_code,'\nCheck internet connection and try again.')
+                #quit()
+            with open(dst,'w') as f:
+                f.write(r.text)
+
+        base = 'C:/GIS/'
+        if not os.path.exists(base):
+            os.mkdir(base)
+
+        ## UTM Zone Shapefile
+        url = 'https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/World_UTM_Grid/FeatureServer/0/query?where=1=1&outFields=*&outSR=4326&f=geojson'
+        dst = 'C:\\GIS\\World_UTM_Grid.zip'
+
+        if not os.path.exists(dst):
+            r = requests.get(url)
+            if r.status_code != 200:
+                print(url, '\nstatus code:', r.status_code,'\nCheck internet connection and try again.')
+
+            gdf = gpd.read_file(r.text, driver='GeoJSON')
+
+            gdf.to_file(dst.replace('.zip','.shp'))
+            
+            paths = ["C:\\GIS\\World_UTM_Grid.shx",
+                     "C:\\GIS\\World_UTM_Grid.cpg",
+                     "C:\\GIS\\World_UTM_Grid.dbf",
+                     "C:\\GIS\\World_UTM_Grid.prj",
+                     "C:\\GIS\\World_UTM_Grid.shp"]
+
+            # ZIP
+            with zipfile.ZipFile(dst, "w", zipfile.ZIP_DEFLATED) as myzip:
+                for path in paths:
+                    myzip.write(path)
+
+            # Clean up
+            for path in paths:        
+                os.remove(path)
+
+        print('Dependencies set up successfully.')
 
     def parse_date(date_string):
         """
