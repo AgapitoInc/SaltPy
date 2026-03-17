@@ -2,7 +2,6 @@
 import os
 import glob
 import sys
-import time
 import re
 import warnings
 import subprocess
@@ -28,7 +27,6 @@ from stl import mesh
 import pymeshfix as mf
 
 # Domain-Specific Packages
-#import srtm
 import wellpathpy as wp
 import requests
 
@@ -1268,4 +1266,3 @@ def get_igrf_path():
             raise RuntimeError("IGRF file missing and could not be downloaded.") from e
 
     return str(cache_path)
-
