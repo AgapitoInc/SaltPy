@@ -34,47 +34,14 @@ python -m ipykernel install --user --name geo3d --display-name "Python (geo3d)"
 
   
 
-## Step 2: Add Required Files
-
-  
-
-1.  **Add UTM Grid**
-
-		Download the UTM grid to the following location:
-
-		C:/GIS/World_UTM_Grid.zip
-
-  
-
-2.  **Add IGRF13 Coefficients**
-
-	To install `igrf13coeffs.txt`, either:
-		
-	- Manually insert the file:
-
-	C:/Users/{your_username}/.conda/envs/geo3d/lib/site-packages/pyCRGI/data/
-  
-
-	- Or run the install script:
-
-```bash
-
-python igrf13_install.py
-```
-
-  
-
----
-
-
-## Step 3: Install SaltPy
+## Step 2: Install SaltPy
 
 ```bash
 
 pip install .\saltpy-*-py3-none-any.whl
 ```
 
-## Step 4: Launch Jupyter 
+## Step 3: Launch Jupyter 
 
 ```bash
 

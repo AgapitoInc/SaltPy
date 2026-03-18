@@ -215,7 +215,8 @@ class SonarPy:
             # ZIP
             with zipfile.ZipFile(dst, "w", zipfile.ZIP_DEFLATED) as myzip:
                 for path in paths:
-                    myzip.write(path)
+                    fname = path.split('\\')[-1]
+                    myzip.write(path, arcname=fname)
 
             # Clean up
             for path in paths:        
@@ -686,14 +687,53 @@ class SonarPy:
 
         return dfT
     
+    def dat_to_dfT(self, path):
+        '''
+        Opens a SOCON DAT file directly and exports a dfT.
+
+        Input:
+        path: str, path to the .dat file
+
+        Returns:
+        dfT: pandas.DataFrame, long-form DataFrame where each row represents a single sonar shot,
+
+        Line Markers in the File:
+        # start of horizontal sections
+        > end of horizontal section
+        < end of vertical section
+        @ end of volume section
+        '''
+        with open(path, 'r') as f:
+            lines = f.readlines()
+
+        # Seperate Horizontal and Vertical Sections
+        clines = [x.replace('\n','') for x in lines]
+        pattern = r'^[+-]?\d*\.?\d+$'
+        altlines = [[i,x] for i,x in enumerate(clines) if not re.match(pattern, x)]
+        altn = [x[0] for x in altlines]
+        start, stop = [i for i,x in altlines if x in ['#','<']]
+        clplines = [x for x in clines[start + 1 : stop] if x != '>']
+        data = np.array(clplines)
+        data = data.astype(float)
+        
+        # Seperate Data Types
+        depths = data[::3]
+        radius = data[1::3]
+        azi = data[2::3]
+
+        dfT = pd.DataFrame({'depth':depths, 'r':radius, 'cAzi':azi})
+        dfT['tilt'] = 0
+        
+        return dfT
+    
     def read_lwt_dat_export(self, path):
         """
-        Reads a .dat export from CavView II and reformats into LWT
+        Reads a .dat export from CavView II and reformats into a long-form DataFrame with one row per sonar shot.
         
         Parameters
         ----------
         path : str
-            File path to the `.dat` file exported from CavView II.
+            File path to the `.dat` file export from CavView II.
 
         Returns
         -------
@@ -1043,6 +1083,9 @@ class SonarDXF:
             t['z_m'] = group.z.mean()
 
             lines = pd.concat([lines, t], ignore_index=True)
+
+        # Return as GeoDataFrame
+        lines = gpd.GeoDataFrame(lines, geometry='geometry', crs=xyz_gdf.crs)
 
         return lines
 
