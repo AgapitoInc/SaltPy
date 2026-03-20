@@ -3,7 +3,7 @@
 
 ```python
 import saltpy
-from saltpy.agapito import SonarPy as sp
+from saltpy.public import SonarPy as snrp
 
 import pyvista as pv
 import geopandas as gpd
@@ -125,8 +125,8 @@ gdf_horiz = gdf[
     (gdf["depth"] != d_irreg) | ((gdf["depth"] == d_irreg) & (gdf["mInc"] == 90))
 ]
 
-b_vertices, b_faces = sp.build_endcap(gdf_irr)
-h_vertices, h_faces = sp.build_horizontal_shots(gdf_horiz)
+b_vertices, b_faces = snrp.build_endcap(gdf_irr)
+h_vertices, h_faces = snrp.build_horizontal_shots(gdf_horiz)
 ```
 
     Grouped by 'depth' into 42 layers.
@@ -155,7 +155,7 @@ connect_vertices, connect_faces = sp.build_horizontal_shots(combined_df)
 
 
 ```python
-sp.combine_mesh_parts(
+snrp.combine_mesh_parts(
     parts=[
         (h_vertices, h_faces),
     ],

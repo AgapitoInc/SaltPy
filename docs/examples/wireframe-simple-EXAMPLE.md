@@ -4,7 +4,7 @@
 
 ```python
 import saltpy
-from saltpy.agapito import SonarPy as sp
+from saltpy.public import SonarPy as snrp
 
 import pyvista as pv
 import geopandas as gpd
@@ -42,11 +42,11 @@ plotter.show()
 
 
 ```python
-h_vertices, h_faces = build_horizontal_shots(gdf)
+h_vertices, h_faces = snrp.build_horizontal_shots(gdf)
 ```
 
 ```python
-combine_mesh_parts(
+snrp.combine_mesh_parts(
     parts=[
         (h_vertices, h_faces),
     ],

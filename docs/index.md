@@ -6,11 +6,11 @@ SaltPy is a Python package for the processing, analysis, and visualization of so
 
 ## Getting Started
 
-- [Installation & Setup](setup/installation.md)  
+- [Installation & Setup](docs/setup/installation.md)  
   Learn how to install SaltPy and set up your environment.
 
-- [Examples](examples/wireframe-EXAMPLE.md)  
+- [Examples](docs/examples/wireframe-EXAMPLE.md)  
   Step-by-step use cases to help you get started.
 
-- [API Reference](api/SonarPy.md)  
+- [API Reference](docs/api/SonarPy.md)  
   Full reference for all functions and classes.
