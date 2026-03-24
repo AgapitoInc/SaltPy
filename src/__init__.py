@@ -5,7 +5,7 @@ from . import utils
 SaltPy: Open-Source Sonar Survey Processing for Solution-Mined Caverns
 """
 
-__version__ = "0.0.0a"
+__version__ = "0.0.2a"
 __author__ = "Matthew W. Bauer, Brandon Lampe, Kaitlyn Manalili, Baris Ates"
 __license__ = "MIT"
 
@@ -15,3 +15,6 @@ __all__ = [
     "core",
     "utils",
 ]
+
+from saltpy_public import SonarPy, SonarPyVista, SonarDXF
+from saltpy_public import get_igrf_path

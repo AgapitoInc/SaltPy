@@ -165,7 +165,7 @@ class SonarPy:
         #    self.open_lwt()
         #    self.lwt_df_to_delta_points()
 
-    def set_up_dep():
+    def set_up_dep(self):
         '''Sets up dependencies by downloading necessary files and preparing the environment.'''
         print('Setting up dependencies...')
         
@@ -952,7 +952,7 @@ class SonarPyVista:
     Class for creating PyVista-based visualizations from sonar-derived cavern data.
     """
     def __init__(self):
-        self.__version__ = '0.0.0a'
+        self.__version__ = '0.0.1a'
 
     def build_horizontal_shots(data, sort_by="cAzi"):
         """

@@ -1,16 +1,20 @@
-# Welcome to SaltPy
+# SaltPy
+## Open-Source Sonar Survey Processing for Solution-Mined Caverns
 
-This is the homepage for the SaltPy documentation.
+![SaltPy Logo](https://github.com/AgapitoInc/SaltPy/tree/main/img/SaltPy.svg)
 
-SaltPy is a Python package for the processing, analysis, and visualization of sonar and geospatial data related to salt caverns.
+SaltPy is an open-source, vendor-agnostic Python framework developed for processing, georeferencing, and visualizing sonar survey data from solution-mined caverns. The software addresses challenges associated with transforming proprietary sonar files or exports into spatially consistent, analysis-ready datasets suitable for engineering evaluation, GIS integration, and three-dimensional modeling.
+
+SaltPy implements spherical-to-Cartesian coordinate transformations, enabling direct integration with common geospatial (GIS) environments. Cavern geometries are represented as point clouds using widely adopted geospatial data structures, promoting interoperability and long-term reproducibility. The framework also supports the generation of higher-order geometric products, including wireframe models, STL volumes, and volumetric cavern envelopes derived from voxel-based reconstruction with watertight repair utilities. These capabilities facilitate interactive three-dimensional visualization, interpretation, and export to common engineering formats.
+
 
 ## Getting Started
 
-- [Installation & Setup](docs/setup/installation.md)  
+- [Installation & Setup](https://github.com/AgapitoInc/SaltPy/tree/main/docs/setup/installation.md)  
   Learn how to install SaltPy and set up your environment.
 
-- [Examples](docs/examples/wireframe-EXAMPLE.md)  
+- [Examples](https://github.com/AgapitoInc/SaltPy/tree/main/docs/examples/wireframe-EXAMPLE.md)  
   Step-by-step use cases to help you get started.
 
-- [API Reference](docs/api/SonarPy.md)  
+- [API Reference](https://github.com/AgapitoInc/SaltPy/tree/main/docs/api/SonarPy.md)  
   Full reference for all functions and classes.
