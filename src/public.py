@@ -18,7 +18,7 @@ import geopandas as gpd
 from shapely.geometry import Point, LineString, Polygon, MultiPolygon
 from skimage.draw import line_nd
 import scipy
-from scipy.spatial import cKDTree, Delaunay
+from scipy.spatial import Delaunay
 from pyCRGI.pure import get_value
 
 # 3D Visualization & Mesh Handling
@@ -261,148 +261,6 @@ class SonarPy:
             return formatted_date
         else:
             return None
-
-    def build_horizontal_shots(data, sort_by="cAzi"):
-        """
-        Builds a 3D STL-style mesh from sonar scan layers.
-
-        !! Note: The function assumes consistent ring-like ordering between layers
-        for valid surface stitching. Each layer must represent a distinct scan ring.
-
-        Parameters
-        ----------
-        data : GeoDataFrame or list of GeoDataFrames
-            Input sonar layer(s), each with x, y, z, and a sort_by column.
-        sort_by : str, default='cAzi'
-            Field to sort points within each layer (preserves ring structure).
-
-        Returns
-        -------
-        vertices : np.ndarray
-            Combined point coordinates (N x 3).
-        faces : list of lists
-            Triangle faces in [3, i1, i2, i3] format.
-        """
-        if isinstance(data, list):
-            layers = data
-
-        elif isinstance(data, gpd.GeoDataFrame):
-            gdf = data.copy()
-            unique_depths = gdf["depth"].unique()
-
-            if len(unique_depths) > 1:
-                grouped = gdf.groupby("depth")
-                layers = [grouped.get_group(k) for k in sorted(grouped.groups.keys())]
-                print(f"Grouped by 'depth' into {len(layers)} layers.")
-            else:
-                print("All depths equal — splitting into 2 layers by z.")
-                gdf = gdf.sort_values("z").reset_index(drop=True)
-                mid = len(gdf) // 2
-                gdf.loc[:mid - 1, "layer_id"] = 1
-                gdf.loc[mid:, "layer_id"] = 2
-                grouped = gdf.groupby("layer_id")
-                layers = [grouped.get_group(k) for k in sorted(grouped.groups.keys())]
-                print("Assigned 'layer_id' based on z splitting.")
-
-        else:
-            raise TypeError("Input must be a GeoDataFrame or list of GeoDataFrames.")
-
-        # Sort and trim all layers to match size
-        sorted_layers = []
-        min_len = min(len(layer) for layer in layers)
-        for layer in layers:
-            layer = layer.sort_values(sort_by).reset_index(drop=True)
-            layer = layer.iloc[:min_len]
-            coords = layer[["x", "y", "z"]].to_numpy()
-            sorted_layers.append(coords)
-
-        # Stack vertices
-        vertices = np.vstack(sorted_layers)
-        n_layers = len(sorted_layers)
-        points_per_layer = sorted_layers[0].shape[0]
-
-        # Build triangle faces
-        faces = []
-        for i in range(n_layers - 1):
-            top = i * points_per_layer
-            bottom = (i + 1) * points_per_layer
-            for j in range(points_per_layer):
-                next_j = (j + 1) % points_per_layer
-                a, b = top + j, top + next_j
-                c, d = bottom + j, bottom + next_j
-                faces.append([a, b, c])
-                faces.append([b, d, c])
-
-        return vertices, faces
-
-    def build_endcap(layer_df):
-        """
-        Build a 3D mesh for a single sonar scan layer using 2D Delaunay triangulation in (x, y).
-
-        Parameters
-        ----------
-        layer_df : pandas.DataFrame or GeoDataFrame
-            DataFrame containing sonar points from a single horizontal layer, with columns 'x', 'y', and 'z'.
-
-        Returns
-        -------
-        vertices : ndarray of shape (N, 3)
-            3D coordinates of the mesh vertices.
-        faces : list of list of int
-            Triangle face indices as index triplets into the vertices array.
-        """
-        points_2d = layer_df[["x", "y"]].to_numpy()
-        points_3d = layer_df[["x", "y", "z"]].to_numpy()
-
-        tri = Delaunay(points_2d)
-        faces = tri.simplices.tolist()
-
-        return points_3d, faces
-
-
-    def combine_mesh_parts(parts, filename="combined_mesh.stl"):
-        """
-        Combine multiple mesh parts (each with vertices and faces) into a single STL mesh file.
-
-        Parameters
-        ----------
-        parts : list of tuple (ndarray, list of list of int)
-            List of mesh parts, where each element is a tuple of:
-            - vertices : ndarray of shape (N, 3)
-            - faces : list of index triplets into the vertices array
-
-        filename : str, optional
-            Output filename for the combined STL mesh. Default is 'combined_mesh.stl'.
-        """
-        all_vertices = []
-        all_faces = []
-
-        vertex_offset = 0
-        for vertices, faces in parts:
-            all_vertices.append(vertices)
-            # Shift face indices by current vertex offset
-            shifted_faces = [[i + vertex_offset for i in face] for face in faces]
-            all_faces.extend(shifted_faces)
-            vertex_offset += len(vertices)
-
-        # Stack everything
-        vertices = np.vstack(all_vertices)
-        faces = all_faces
-
-        # Convert to triangle array
-        triangles = np.zeros((len(faces), 3, 3), dtype=np.float32)
-        for i, (a, b, c) in enumerate(faces):
-            triangles[i][0] = vertices[a]
-            triangles[i][1] = vertices[b]
-            triangles[i][2] = vertices[c]
-
-        # Create and save mesh
-        your_mesh = mesh.Mesh(np.zeros(triangles.shape[0], dtype=mesh.Mesh.dtype))
-        for i in range(triangles.shape[0]):
-            your_mesh.vectors[i] = triangles[i]
-
-        your_mesh.save(filename)
-        print(f"Combined mesh saved to: {filename}")
 
     def las2txt_path(path):
         """
@@ -1096,6 +954,148 @@ class SonarPyVista:
     def __init__(self):
         self.__version__ = '0.0.0a'
 
+    def build_horizontal_shots(data, sort_by="cAzi"):
+        """
+        Builds a 3D STL-style mesh from sonar scan layers.
+
+        !! Note: The function assumes consistent ring-like ordering between layers
+        for valid surface stitching. Each layer must represent a distinct scan ring.
+
+        Parameters
+        ----------
+        data : GeoDataFrame or list of GeoDataFrames
+            Input sonar layer(s), each with x, y, z, and a sort_by column.
+        sort_by : str, default='cAzi'
+            Field to sort points within each layer (preserves ring structure).
+
+        Returns
+        -------
+        vertices : np.ndarray
+            Combined point coordinates (N x 3).
+        faces : list of lists
+            Triangle faces in [3, i1, i2, i3] format.
+        """
+        if isinstance(data, list):
+            layers = data
+
+        elif isinstance(data, gpd.GeoDataFrame):
+            gdf = data.copy()
+            unique_depths = gdf["depth"].unique()
+
+            if len(unique_depths) > 1:
+                grouped = gdf.groupby("depth")
+                layers = [grouped.get_group(k) for k in sorted(grouped.groups.keys())]
+                print(f"Grouped by 'depth' into {len(layers)} layers.")
+            else:
+                print("All depths equal — splitting into 2 layers by z.")
+                gdf = gdf.sort_values("z").reset_index(drop=True)
+                mid = len(gdf) // 2
+                gdf.loc[:mid - 1, "layer_id"] = 1
+                gdf.loc[mid:, "layer_id"] = 2
+                grouped = gdf.groupby("layer_id")
+                layers = [grouped.get_group(k) for k in sorted(grouped.groups.keys())]
+                print("Assigned 'layer_id' based on z splitting.")
+
+        else:
+            raise TypeError("Input must be a GeoDataFrame or list of GeoDataFrames.")
+
+        # Sort and trim all layers to match size
+        sorted_layers = []
+        min_len = min(len(layer) for layer in layers)
+        for layer in layers:
+            layer = layer.sort_values(sort_by).reset_index(drop=True)
+            layer = layer.iloc[:min_len]
+            coords = layer[["x", "y", "z"]].to_numpy()
+            sorted_layers.append(coords)
+
+        # Stack vertices
+        vertices = np.vstack(sorted_layers)
+        n_layers = len(sorted_layers)
+        points_per_layer = sorted_layers[0].shape[0]
+
+        # Build triangle faces
+        faces = []
+        for i in range(n_layers - 1):
+            top = i * points_per_layer
+            bottom = (i + 1) * points_per_layer
+            for j in range(points_per_layer):
+                next_j = (j + 1) % points_per_layer
+                a, b = top + j, top + next_j
+                c, d = bottom + j, bottom + next_j
+                faces.append([a, b, c])
+                faces.append([b, d, c])
+
+        return vertices, faces
+
+    def build_endcap(layer_df):
+        """
+        Build a 3D mesh for a single sonar scan layer using 2D Delaunay triangulation in (x, y).
+
+        Parameters
+        ----------
+        layer_df : pandas.DataFrame or GeoDataFrame
+            DataFrame containing sonar points from a single horizontal layer, with columns 'x', 'y', and 'z'.
+
+        Returns
+        -------
+        vertices : ndarray of shape (N, 3)
+            3D coordinates of the mesh vertices.
+        faces : list of list of int
+            Triangle face indices as index triplets into the vertices array.
+        """
+        points_2d = layer_df[["x", "y"]].to_numpy()
+        points_3d = layer_df[["x", "y", "z"]].to_numpy()
+
+        tri = Delaunay(points_2d)
+        faces = tri.simplices.tolist()
+
+        return points_3d, faces
+
+
+    def combine_mesh_parts(parts, filename="combined_mesh.stl"):
+        """
+        Combine multiple mesh parts (each with vertices and faces) into a single STL mesh file.
+
+        Parameters
+        ----------
+        parts : list of tuple (ndarray, list of list of int)
+            List of mesh parts, where each element is a tuple of:
+            - vertices : ndarray of shape (N, 3)
+            - faces : list of index triplets into the vertices array
+
+        filename : str, optional
+            Output filename for the combined STL mesh. Default is 'combined_mesh.stl'.
+        """
+        all_vertices = []
+        all_faces = []
+
+        vertex_offset = 0
+        for vertices, faces in parts:
+            all_vertices.append(vertices)
+            # Shift face indices by current vertex offset
+            shifted_faces = [[i + vertex_offset for i in face] for face in faces]
+            all_faces.extend(shifted_faces)
+            vertex_offset += len(vertices)
+
+        # Stack everything
+        vertices = np.vstack(all_vertices)
+        faces = all_faces
+
+        # Convert to triangle array
+        triangles = np.zeros((len(faces), 3, 3), dtype=np.float32)
+        for i, (a, b, c) in enumerate(faces):
+            triangles[i][0] = vertices[a]
+            triangles[i][1] = vertices[b]
+            triangles[i][2] = vertices[c]
+
+        # Create and save mesh
+        your_mesh = mesh.Mesh(np.zeros(triangles.shape[0], dtype=mesh.Mesh.dtype))
+        for i in range(triangles.shape[0]):
+            your_mesh.vectors[i] = triangles[i]
+
+        your_mesh.save(filename)
+        print(f"Combined mesh saved to: {filename}")
+
     def wireframe_from_cavlines2(lines):
         """
         Builds a PyVista wireframe mesh from cavern survey line geometries.
@@ -1166,7 +1166,7 @@ class SonarPyVista:
                         rind_width:-1 * rind_width]
         return array_cleaned
 
-    def mesh_xyz(xyz, iterations=3, n_iter=200, rf=0.1):
+    def mesh_xyz(self, xyz, iterations=3, n_iter=200, rf=0.1):
         """
         Takes a geopandas.GeoDataFrame of processed xyz date (UTM) and creates
         a surface of the exterior of the cavern.  
@@ -1227,7 +1227,7 @@ class SonarPyVista:
             # Set the corresponding points in the array to 1
             new_variable[indices] = 1
 
-        new_variable = add_rind(new_variable, iterations + 1) #testing rind
+        new_variable = self.add_rind(new_variable, iterations + 1) #testing rind
 
         struct = scipy.ndimage.generate_binary_structure(3,3)
 
@@ -1239,7 +1239,7 @@ class SonarPyVista:
                                                 iterations=iterations, 
                                                 structure=struct)
 
-        eroded = remove_rind(eroded, iterations + 1) #testing rind
+        eroded = self.remove_rind(eroded, iterations + 1) #testing rind
 
         ## Make Voxel --------------------------------------------------------
         grid = pv.ImageData()

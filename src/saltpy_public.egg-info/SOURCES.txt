@@ -1,0 +1,10 @@
+LICENSE
+README.md
+pyproject.toml
+src/__init__.py
+src/public.py
+src/saltpy_public.egg-info/PKG-INFO
+src/saltpy_public.egg-info/SOURCES.txt
+src/saltpy_public.egg-info/dependency_links.txt
+src/saltpy_public.egg-info/requires.txt
+src/saltpy_public.egg-info/top_level.txt

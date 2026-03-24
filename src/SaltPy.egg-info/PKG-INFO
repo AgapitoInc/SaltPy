@@ -1,3 +1,25 @@
+Metadata-Version: 2.4
+Name: SaltPy
+Version: 0.0.0a0
+Summary: SaltPy: Open-Source Sonar Survey Processing for Solution-Mined Caverns
+Author-email: "Matthew W. Bauer, PG" <bauer@agapito.com>
+License: MIT
+Project-URL: Homepage, https://github.com/AgapitoInc/SaltPy
+Keywords: salt,caverns,solution mining
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Provides-Extra: dev
+Dynamic: license-file
+
 # SaltPy
 ## Open-Source Sonar Survey Processing for Solution-Mined Caverns
 
