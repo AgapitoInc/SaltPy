@@ -25,6 +25,7 @@ from pyCRGI.pure import get_value
 import pyvista as pv
 from stl import mesh
 import pymeshfix as mf
+import trimesh
 
 # Domain-Specific Packages
 import wellpathpy as wp
@@ -134,11 +135,11 @@ class SonarPy:
     """
 
     def __init__(self, surveyxyz=None, surveyxyzWGS84=None, year=2024, metric=False, crs='EPSG:4326',
-                 utm_shp_path=None):
+                 utm_shp_path="C:\\GIS\\World_UTM_Grid.zip"):
         self.__version__ = '0.0.0d'
         self.crs = crs
         self.metric = metric
-        self.utm_shp_path = "C:\\GIS\\World_UTM_Grid.zip"
+        self.utm_shp_path = utm_shp_path
 
         # Validate that UTM shapefile exists
         if not os.path.exists(self.utm_shp_path):
@@ -166,36 +167,44 @@ class SonarPy:
         #    self.lwt_df_to_delta_points()
 
     def set_up_dep(self):
-        '''Sets up dependencies by downloading necessary files and preparing the environment.'''
+        '''
+        Sets up dependencies by downloading necessary files and preparing the environment.
+        This function checks for the presence of required files such as the IGRF13 coefficients and the UTM zone shapefile.
+        Primarily a windows function, but can be adapted for other operating systems as needed.
+        '''
         print('Setting up dependencies...')
         
-        ## IGRF13 Coefficients, Magnetic Declination Data for pyCRGI
-        comp = sys.prefix.split('\\')
-        user = comp[2]
-        # For Windows, the conda environment is typically located at C:/Users/<user>/.conda/envs/<env_name>/
-        geo3dpath = f'C:/Users/{user}/.conda/envs/geo3d/'
+        try:
+            ## IGRF13 Coefficients, Magnetic Declination Data for pyCRGI
+            comp = sys.prefix.split('\\')
+            user = comp[2]
 
-        if not os.path.exists(geo3dpath):
-            raise OSError('geo3d conda environment not found at:', geo3dpath)
+            # For Windows, the conda environment is typically located at C:/Users/<user>/.conda/envs/<env_name>/
+            geo3dpath = f'C:/Users/{user}/.conda/envs/geo3d/'
 
-        pyCGRIdataPath = f'{geo3dpath}lib/site-packages/pyCRGI/data/'
-        dst = pyCGRIdataPath + 'igrf13coeffs.txt'
-        if not os.path.exists(dst):
-            url = "https://www.ngdc.noaa.gov/IAGA/vmod/coeffs/igrf13coeffs.txt"
-            r = requests.get(url)
-            if r.status_code != 200:
-                print(url, 'status code', r.status_code,'\nCheck internet connection and try again.')
-                #quit()
-            with open(dst,'w') as f:
-                f.write(r.text)
+            if not os.path.exists(geo3dpath):
+                raise OSError('geo3d conda environment not found at:', geo3dpath)
 
-        base = 'C:/GIS/'
-        if not os.path.exists(base):
-            os.mkdir(base)
+            pyCGRIdataPath = f'{geo3dpath}lib/site-packages/pyCRGI/data/'
+            dst = pyCGRIdataPath + 'igrf13coeffs.txt'
+            if not os.path.exists(dst):
+                url = "https://www.ngdc.noaa.gov/IAGA/vmod/coeffs/igrf13coeffs.txt"
+                r = requests.get(url)
+                if r.status_code != 200:
+                    print(url, 'status code', r.status_code,'\nCheck internet connection and try again.')
+                    #quit()
+                with open(dst,'w') as f:
+                    f.write(r.text)
+
+            base = 'C:/GIS/'
+            if not os.path.exists(base):
+                os.mkdir(base)
+        except:
+            pass
 
         ## UTM Zone Shapefile
         url = 'https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/World_UTM_Grid/FeatureServer/0/query?where=1=1&outFields=*&outSR=4326&f=geojson'
-        dst = 'C:\\GIS\\World_UTM_Grid.zip'
+        dst = self.utm_shp_path
 
         if not os.path.exists(dst):
             r = requests.get(url)
@@ -206,11 +215,8 @@ class SonarPy:
 
             gdf.to_file(dst.replace('.zip','.shp'))
             
-            paths = ["C:\\GIS\\World_UTM_Grid.shx",
-                     "C:\\GIS\\World_UTM_Grid.cpg",
-                     "C:\\GIS\\World_UTM_Grid.dbf",
-                     "C:\\GIS\\World_UTM_Grid.prj",
-                     "C:\\GIS\\World_UTM_Grid.shp"]
+            exnts = ['shx', 'cpg', 'dbf', 'prj', 'shp']
+            paths = [dst.replace('.zip', f'.{ext}') for ext in exnts]
 
             # ZIP
             with zipfile.ZipFile(dst, "w", zipfile.ZIP_DEFLATED) as myzip:
@@ -1051,7 +1057,6 @@ class SonarPyVista:
 
         return points_3d, faces
 
-
     def combine_mesh_parts(parts, filename="combined_mesh.stl"):
         """
         Combine multiple mesh parts (each with vertices and faces) into a single STL mesh file.
@@ -1093,7 +1098,26 @@ class SonarPyVista:
         for i in range(triangles.shape[0]):
             your_mesh.vectors[i] = triangles[i]
 
-        your_mesh.save(filename)
+        ## Fix Mesh ---------------------------------------------------------
+        # Flatten triangles
+        v = your_mesh.vectors.reshape(-1, 3)
+
+        # Deduplicate vertices
+        vertices, inverse = np.unique(v, axis=0, return_inverse=True)
+
+        # Rebuild faces
+        faces = inverse.reshape(-1, 3)
+
+        # Create trimesh object
+        tm = trimesh.Trimesh(vertices=vertices, faces=faces)
+        
+        # Fix edges 
+        meshfix = mf.MeshFix(tm.vertices, tm.faces)
+
+        # Repair also fills holes
+        meshfix.repair()
+        meshfix.mesh.save(filename)
+
         print(f"Combined mesh saved to: {filename}")
 
     def wireframe_from_cavlines2(lines):
@@ -1120,7 +1144,7 @@ class SonarPyVista:
 
         return mesh
     
-    def add_rind(array_3d, rind_width):
+    def add_rind(self, array_3d, rind_width):
         """
         Add a rind (border) of zeros to a 3D array.
 
@@ -1140,7 +1164,7 @@ class SonarPyVista:
 
         return padded_array
 
-    def remove_rind(array_3d, rind_width):
+    def remove_rind(self, array_3d, rind_width):
         """
         Remove rind (border) of zeros from a 3D array
         

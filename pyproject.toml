@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "saltpy-public"
-version = "0.0.2a"
+version = "0.0.6a"
 description = "SaltPy Open-Source Sonar Survey Processing for Solution-Mined Caverns"
 readme = "README.md"
 requires-python = ">=3.8"
