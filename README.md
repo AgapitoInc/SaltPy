@@ -1,7 +1,7 @@
+![SaltPy Logo](https://github.com/AgapitoInc/SaltPy/tree/main/img/SaltPy.svg)
+
 # SaltPy
 ## Open-Source Sonar Survey Processing for Solution-Mined Caverns
-
-![SaltPy Logo](https://github.com/AgapitoInc/SaltPy/tree/main/img/SaltPy.svg)
 
 SaltPy is an open-source, vendor-agnostic Python framework developed for processing, georeferencing, and visualizing sonar survey data from solution-mined caverns. The software addresses challenges associated with transforming proprietary sonar files or exports into spatially consistent, analysis-ready datasets suitable for engineering evaluation, GIS integration, and three-dimensional modeling.
 
