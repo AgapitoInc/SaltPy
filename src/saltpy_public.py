@@ -575,7 +575,7 @@ class SonarPy:
         pattern = r'^[+-]?\d*\.?\d+$'
         altlines = [[i,x] for i,x in enumerate(clines) if not re.match(pattern, x)]
         altn = [x[0] for x in altlines]
-        start, stop = [i for i,x in altlines if x in ['#','<']]
+        start, stop = [i for i,x in altlines if x in ['#','<']][:2]
         clplines = [x for x in clines[start + 1 : stop] if x != '>']
         data = np.array(clplines)
         data = data.astype(float)
