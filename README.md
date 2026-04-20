@@ -1,4 +1,4 @@
-![SaltPy Logo](https://github.com/AgapitoInc/SaltPy/tree/main/img/SaltPy.svg)
+![SaltPy Logo](https://raw.githubusercontent.com/AgapitoInc/SaltPy/refs/heads/main/img/SaltPy.svg)
 
 # SaltPy
 ## Open-Source Sonar Survey Processing for Solution-Mined Caverns
