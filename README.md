@@ -13,7 +13,7 @@ SaltPy implements spherical-to-Cartesian coordinate transformations, enabling di
 - [Installation & Setup](https://github.com/AgapitoInc/SaltPy/tree/main/docs/setup/installation.md)  
   Learn how to install SaltPy and set up your environment.
 
-- [Examples](https://github.com/AgapitoInc/SaltPy/tree/main/docs/examples/processing_examples.ipynb)  
+- [Examples](https://github.com/AgapitoInc/SaltPy/blob/main/examples/Processing_Examples.ipynb)  
   Step-by-step use cases to help you get started.
 
 - [API Reference](https://github.com/AgapitoInc/SaltPy/tree/main/docs/api/SonarPy.md)  
