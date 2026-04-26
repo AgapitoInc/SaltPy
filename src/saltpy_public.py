@@ -136,7 +136,7 @@ class SonarPy:
 
     def __init__(self, surveyxyz=None, surveyxyzWGS84=None, year=2024, metric=False, crs='EPSG:4326',
                  utm_shp_path="C:\\GIS\\World_UTM_Grid.zip"):
-        self.__version__ = '0.0.0d'
+        self.__version__ = '0.1.0'
         self.crs = crs
         self.metric = metric
         self.utm_shp_path = utm_shp_path
@@ -1057,7 +1057,7 @@ class SonarPyVista:
 
         return points_3d, faces
 
-    def combine_mesh_parts(parts, filename="combined_mesh.stl"):
+    def combine_mesh_parts(parts, fix=False, filename="combined_mesh.stl"):
         """
         Combine multiple mesh parts (each with vertices and faces) into a single STL mesh file.
 
@@ -1114,8 +1114,10 @@ class SonarPyVista:
         # Fix edges 
         meshfix = mf.MeshFix(tm.vertices, tm.faces)
 
-        # Repair also fills holes
-        meshfix.repair()
+        if fix:
+            # Repair also fills holes
+            meshfix.repair()
+
         meshfix.mesh.save(filename)
 
         print(f"Combined mesh saved to: {filename}")
@@ -1190,7 +1192,7 @@ class SonarPyVista:
                         rind_width:-1 * rind_width]
         return array_cleaned
 
-    def mesh_xyz(self, xyz, iterations=3, n_iter=200, rf=0.1):
+    def mesh_xyz(self, xyz, iterations=3, n_iter=200, rf=0.1, fix=False):
         """
         Takes a geopandas.GeoDataFrame of processed xyz date (UTM) and creates
         a surface of the exterior of the cavern.  
@@ -1288,8 +1290,9 @@ class SonarPyVista:
         # Fix edges -----------------------------------------------------------
         meshfix = mf.MeshFix(smoothed_surface)
 
-        # Repair also fills holes
-        meshfix.repair(verbose=True)
+        if fix:
+            # Repair also fills holes
+            meshfix.repair(verbose=True)
 
         envelope = meshfix.mesh.clean().triangulate()
         

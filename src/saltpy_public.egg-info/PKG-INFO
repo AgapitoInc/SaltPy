@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: saltpy-public
-Version: 0.0.6a0
+Version: 0.1.0
 Summary: SaltPy Open-Source Sonar Survey Processing for Solution-Mined Caverns
 Author-email: "Matthew W. Bauer, PG" <bauer@agapito.com>
 License: MIT
@@ -20,10 +20,10 @@ License-File: LICENSE
 Provides-Extra: dev
 Dynamic: license-file
 
+![SaltPy Logo](https://raw.githubusercontent.com/AgapitoInc/SaltPy/refs/heads/main/img/SaltPy.svg)
+
 # SaltPy
 ## Open-Source Sonar Survey Processing for Solution-Mined Caverns
-
-![SaltPy Logo](https://github.com/AgapitoInc/SaltPy/tree/main/img/SaltPy.svg)
 
 SaltPy is an open-source, vendor-agnostic Python framework developed for processing, georeferencing, and visualizing sonar survey data from solution-mined caverns. The software addresses challenges associated with transforming proprietary sonar files or exports into spatially consistent, analysis-ready datasets suitable for engineering evaluation, GIS integration, and three-dimensional modeling.
 
@@ -35,7 +35,7 @@ SaltPy implements spherical-to-Cartesian coordinate transformations, enabling di
 - [Installation & Setup](https://github.com/AgapitoInc/SaltPy/tree/main/docs/setup/installation.md)  
   Learn how to install SaltPy and set up your environment.
 
-- [Examples](https://github.com/AgapitoInc/SaltPy/tree/main/docs/examples/wireframe-EXAMPLE.md)  
+- [Examples](https://github.com/AgapitoInc/SaltPy/tree/main/docs/examples/processing_examples.ipynb)  
   Step-by-step use cases to help you get started.
 
 - [API Reference](https://github.com/AgapitoInc/SaltPy/tree/main/docs/api/SonarPy.md)  
