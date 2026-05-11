@@ -136,7 +136,7 @@ class SonarPy:
 
     def __init__(self, surveyxyz=None, surveyxyzWGS84=None, year=2024, metric=False, crs='EPSG:4326',
                  utm_shp_path="C:\\GIS\\World_UTM_Grid.zip"):
-        self.__version__ = '0.1.0'
+        self.__version__ = '0.1.1'
         self.crs = crs
         self.metric = metric
         self.utm_shp_path = utm_shp_path
@@ -799,9 +799,10 @@ class SonarPy:
         xyz['z'] = self.surveyxyzUTM[2] - ((xyz['depth'] / 3.28084) - xyz['dz'])
 
         # Create 3D shapely Points (loop version, explicit)
-        xyz['geometry'] = ''
-        for index, row in xyz.iterrows():
-            xyz.at[index, 'geometry'] = Point(row['x'], row['y'], row['z'])
+        # xyz['geometry'] = ''
+        # for index, row in xyz.iterrows():
+            # xyz.at[index, 'geometry'] = Point(row['x'], row['y'], row['z'])
+         xyz['geometry'] = [Point(x, y, z) for x, y, z in zip(xyz['x'], xyz['y'], xyz['z'])]       
 
         # Create GeoDataFrame in UTM
         xyz_gdf = gpd.GeoDataFrame(xyz, crs=self.zonecrs)
