@@ -136,7 +136,7 @@ class SonarPy:
 
     def __init__(self, surveyxyz=None, surveyxyzWGS84=None, year=2024, metric=False, crs='EPSG:4326',
                  utm_shp_path="C:\\GIS\\World_UTM_Grid.zip"):
-        self.__version__ = '0.1.1'
+        self.__version__ = '0.1.2'
         self.crs = crs
         self.metric = metric
         self.utm_shp_path = utm_shp_path
@@ -783,20 +783,20 @@ class SonarPy:
 
         # Apply wellbore deviation correction
         wb_dx, wb_dy, wb_dz = wb_delta
-        xyz['dx'] += wb_dx
-        xyz['dy'] += wb_dy
-        xyz['dz'] += wb_dz
+        xyz['wbdx'] += wb_dx
+        xyz['wbdy'] += wb_dy
+        xyz['wbdz'] += wb_dz
 
         # Convert from feet to meters if working in metric mode
         if not self.metric:
             z /= 3.28084
-            for col in ['dx', 'dy', 'dz']:
+            for col in ['dx', 'dy', 'dz', 'wbdx', 'wbdy', 'wbdz']:
                 xyz[col] = xyz[col].astype(float) / 3.28084
 
         # Compute full UTM coordinates
-        xyz['x'] = self.surveyxyzUTM[0] + xyz['dx']
-        xyz['y'] = self.surveyxyzUTM[1] + xyz['dy']
-        xyz['z'] = self.surveyxyzUTM[2] - ((xyz['depth'] / 3.28084) - xyz['dz'])
+        xyz['x'] = self.surveyxyzUTM[0] + xyz['dx'] + xyz['wbdx']
+        xyz['y'] = self.surveyxyzUTM[1] + xyz['dy'] + xyz['wbdy']
+        xyz['z'] = self.surveyxyzUTM[2] - ((xyz['depth'] / 3.28084) - xyz['dz'] + xyz['wbdz'])  # Subtract depth to get elevation, then add dz and wbdz
 
         # Create 3D shapely Points (loop version, explicit)
         # xyz['geometry'] = ''
@@ -1215,7 +1215,12 @@ class SonarPyVista:
         envelope : pyvista.PolyData
             The final triangulated mesh surface of the cavern.
         """
-        
+        ## add check for older processed files that don't have wbdeltas and add them as 0 if not present
+        for col in ['wbdx', 'wbdy', 'wbdz']:
+            if col not in xyz.columns:
+                warnings.warn(Exception(f'{col} not found in xyz GeoDataFrame. If this is an older processed file, adding a column of 0s for {col}. If deviation survey was originally used please re-run.'))
+                xyz[col] = 0    
+
         ## Make Array -------------------------------------------------------
         # Try using the val - minimum as an index then refrence later on
         minx, miny, maxx, maxy = xyz.total_bounds
@@ -1227,9 +1232,9 @@ class SonarPyVista:
         #dx, dy, dz
         
         # Shot origins
-        xyz['x0'] = xyz.x - xyz.dx
-        xyz['y0'] = xyz.y - xyz.dy
-        xyz['z0'] = xyz.z - xyz.dz
+        xyz['x0'] = xyz.x - xyz.dx - xyz.wbdx
+        xyz['y0'] = xyz.y - xyz.dy - xyz.wbdy
+        xyz['z0'] = xyz.z - xyz.dz - xyz.wbdz
         
         ## Check for shots originating outside the pointcloud (upshots)
         n = sum(xyz['z0'] > maxz + 2) + sum(xyz['z0'] < minz - 2)
