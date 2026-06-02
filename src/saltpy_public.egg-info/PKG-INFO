@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: saltpy-public
-Version: 0.1.0
+Version: 0.1.1
 Summary: SaltPy Open-Source Sonar Survey Processing for Solution-Mined Caverns
 Author-email: "Matthew W. Bauer, PG" <bauer@agapito.com>
 License: MIT
@@ -35,7 +35,7 @@ SaltPy implements spherical-to-Cartesian coordinate transformations, enabling di
 - [Installation & Setup](https://github.com/AgapitoInc/SaltPy/tree/main/docs/setup/installation.md)  
   Learn how to install SaltPy and set up your environment.
 
-- [Examples](https://github.com/AgapitoInc/SaltPy/tree/main/docs/examples/processing_examples.ipynb)  
+- [Examples](https://github.com/AgapitoInc/SaltPy/blob/main/examples/Processing_Examples.ipynb)  
   Step-by-step use cases to help you get started.
 
 - [API Reference](https://github.com/AgapitoInc/SaltPy/tree/main/docs/api/SonarPy.md)  
