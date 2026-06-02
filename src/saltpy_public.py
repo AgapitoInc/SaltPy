@@ -136,7 +136,7 @@ class SonarPy:
 
     def __init__(self, surveyxyz=None, surveyxyzWGS84=None, year=2024, metric=False, crs='EPSG:4326',
                  utm_shp_path="C:\\GIS\\World_UTM_Grid.zip"):
-        self.__version__ = '0.1.2'
+        self.__version__ = '0.1.3'
         self.crs = crs
         self.metric = metric
         self.utm_shp_path = utm_shp_path
@@ -783,9 +783,9 @@ class SonarPy:
 
         # Apply wellbore deviation correction
         wb_dx, wb_dy, wb_dz = wb_delta
-        xyz['wbdx'] += wb_dx
-        xyz['wbdy'] += wb_dy
-        xyz['wbdz'] += wb_dz
+        xyz['wbdx'] = wb_dx
+        xyz['wbdy'] = wb_dy
+        xyz['wbdz'] = wb_dz
 
         # Convert from feet to meters if working in metric mode
         if not self.metric:
