@@ -802,7 +802,7 @@ class SonarPy:
         # xyz['geometry'] = ''
         # for index, row in xyz.iterrows():
             # xyz.at[index, 'geometry'] = Point(row['x'], row['y'], row['z'])
-         xyz['geometry'] = [Point(x, y, z) for x, y, z in zip(xyz['x'], xyz['y'], xyz['z'])]       
+        xyz['geometry'] = [Point(x, y, z) for x, y, z in zip(xyz['x'], xyz['y'], xyz['z'])]       
 
         # Create GeoDataFrame in UTM
         xyz_gdf = gpd.GeoDataFrame(xyz, crs=self.zonecrs)
